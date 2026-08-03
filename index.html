@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能双控开关接线指南</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background: linear-gradient(135deg,#0d1117 0%,#161b22 50%,#0d1117 100%);
+    min-height:100vh; color:#c9d1d9; line-height:1.6;
+  }
+  .container { max-width:960px; margin:0 auto; padding:20px; }
+  h1 { text-align:center; font-size:1.8em; margin-bottom:6px; color:#58a6ff; }
+  .subtitle { text-align:center; color:#8b949e; margin-bottom:24px; font-size:0.92em; }
+
+  .card {
+    background: rgba(22,27,34,0.8);
+    border:1px solid #30363d;
+    border-radius:14px; padding:22px; margin-bottom:18px;
+    backdrop-filter: blur(4px);
+  }
+  .card h2 { color:#f0883e; margin-bottom:14px; font-size:1.2em; }
+  .card h3 { color:#58a6ff; margin:14px 0 10px; font-size:1.05em; }
+
+  .notice {
+    background: linear-gradient(90deg,rgba(187,128,9,0.15),rgba(187,128,9,0.05));
+    border-left:3px solid #bb8009;
+    padding:14px 16px; border-radius:8px; margin:14px 0;
+  }
+  .notice p { color:#d29922; }
+
+  .tabs { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+  .tab {
+    padding:10px 22px; border-radius:8px; cursor:pointer;
+    background:#21262d; border:2px solid transparent;
+    transition:all .25s; font-size:0.95em; color:#8b949e;
+  }
+  .tab:hover { background:#30363d; }
+  .tab.active {
+    border-color:#58a6ff; background:rgba(88,166,255,0.12); color:#58a6ff;
+  }
+
+  .panel { display:none; }
+  .panel.active { display:block; animation:fade .35s ease; }
+  @keyframes fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  svg { width:100%; max-width:860px; display:block; margin:0 auto; }
+
+  /* 电流流动 */
+  .flow-live {
+    stroke-dasharray: 8,6;
+    animation: flow 1.2s linear infinite;
+  }
+  .flow-live-slow {
+    stroke-dasharray: 8,6;
+    animation: flow 2s linear infinite;
+  }
+  @keyframes flow {
+    to { stroke-dashoffset: -28; }
+  }
+
+  /* 闪烁 */
+  .pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.4; }
+  }
+
+  /* 灯发光 */
+  .glow {
+    animation: glow 1s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    from { filter: drop-shadow(0 0 4px #ffd700); }
+    to   { filter: drop-shadow(0 0 14px #ffd700); }
+  }
+
+  .switch-box { fill:rgba(48,54,61,0.6); stroke:#484f58; stroke-width:2; }
+  .terminal { fill:#30363d; stroke:#6e7681; stroke-width:2; }
+  .label { font-size:11px; fill:#8b949e; }
+  .label-title { font-size:13px; fill:#c9d1d9; font-weight:bold; }
+  .label-hl { font-size:12px; fill:#3fb950; font-weight:bold; }
+  .label-red { font-size:12px; fill:#f85149; font-weight:bold; }
+
+  .legend { display:flex; gap:18px; flex-wrap:wrap; margin:14px 0; justify-content:center; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:0.88em; color:#8b949e; }
+  .legend-line { width:28px; height:3px; border-radius:2px; }
+
+  .ctrl-bar {
+    display:flex; gap:12px; justify-content:center; margin:16px 0; flex-wrap:wrap;
+  }
+  .btn {
+    padding:8px 18px; border-radius:8px; border:none; cursor:pointer;
+    background:#238636; color:#fff; font-size:0.9em; transition:all .2s;
+  }
+  .btn:hover { background:#2ea043; }
+  .btn.off { background:#da3633; }
+  .btn.off:hover { background:#f85149; }
+
+  .tip {
+    background:rgba(88,166,255,0.08); border:1px solid rgba(88,166,255,0.25);
+    border-radius:10px; padding:14px; margin-top:14px;
+  }
+  .tip h4 { color:#58a6ff; margin-bottom:8px; font-size:1em; }
+  .tip ul { margin-left:20px; color:#a0a8b0; }
+  .tip li { margin-bottom:6px; }
+
+  .step { counter-reset:st; list-style:none; }
+  .step li { position:relative; padding-left:36px; margin-bottom:12px; color:#adbac7; }
+  .step li::before {
+    counter-increment:st; content:counter(st);
+    position:absolute; left:0; top:0; width:26px; height:26px;
+    background:linear-gradient(135deg,#58a6ff,#1f6feb);
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:bold; font-size:0.82em;
+  }
+
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:0.92em; }
+  th,td { padding:10px; text-align:left; border-bottom:1px solid #30363d; }
+  th { color:#f0883e; font-weight:600; }
+  td { color:#adbac7; }
+
+  .badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.82em; font-weight:bold; }
+  .bg-green { background:rgba(35,134,54,0.25); color:#3fb950; }
+  .bg-red  { background:rgba(218,54,51,0.25); color:#f85149; }
+
+  @media(max-width:600px){
+    h1{font-size:1.4em}
+    .card{padding:16px}
+    .tab{padding:8px 14px;font-size:0.88em}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>智能双控开关 接线改造指南</h1>
+<p class="subtitle">传统双控改智能开关 — 点击开关看电流怎么流</p>
+
+<div class="card">
+  <h2>一、改造前：传统双控现状</h2>
+  <p style="color:#8b949e;margin-bottom:12px;font-size:0.95em;">
+    两个开关盒内都有<strong style="color:#f0883e">零线</strong>和<strong style="color:#f0883e">双联线（L1/L2）</strong>，
+    但<strong style="color:#f85149">火线只有开关A有</strong>，<strong style="color:#f85149">灯控线只有开关B有</strong>。
+  </p>
+
+  <svg viewBox="0 0 800 300" id="svg-before">
+    <!-- 配电箱 -->
+    <rect x="30" y="15" width="90" height="70" rx="6" fill="rgba(48,54,61,0.5)" stroke="#484f58" stroke-width="2"/>
+    <text x="75" y="48" text-anchor="middle" class="label-title" style="font-size:12px;">配电箱</text>
+    <text x="75" y="64" text-anchor="middle" class="label" style="font-size:10px;">火线 + 零线</text>
+
+    <!-- 灯 -->
+    <circle cx="720" cy="50" r="24" fill="rgba(255,215,0,0.08)" stroke="#6e7681" stroke-width="2" id="bulb-before"/>
+    <text x="720" y="54" text-anchor="middle" class="label-title" style="font-size:13px;">灯</text>
+
+    <!-- 开关A -->
+    <rect x="270" y="110" width="130" height="150" rx="8" class="switch-box"/>
+    <text x="335" y="134" text-anchor="middle" class="label-title">开关 A</text>
+    <text x="335" y="149" text-anchor="middle" class="label" style="font-size:10px;">（有火线）</text>
+    <circle cx="300" cy="185" r="9" class="terminal" fill="#f85149"/>
+    <text x="300" y="189" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L</text>
+    <circle cx="335" cy="185" r="9" class="terminal"/>
+    <text x="335" y="189" text-anchor="middle" class="label" style="font-size:9px;">L1</text>
+    <circle cx="370" cy="185" r="9" class="terminal"/>
+    <text x="370" y="189" text-anchor="middle" class="label" style="font-size:9px;">L2</text>
+    <circle cx="335" cy="235" r="9" class="terminal" fill="#58a6ff"/>
+    <text x="335" y="239" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">N</text>
+
+    <!-- 开关B -->
+    <rect x="510" y="110" width="130" height="150" rx="8" class="switch-box"/>
+    <text x="575" y="134" text-anchor="middle" class="label-title">开关 B</text>
+    <text x="575" y="149" text-anchor="middle" class="label" style="font-size:10px;">（有灯控线）</text>
+    <circle cx="540" cy="185" r="9" class="terminal" fill="#d29922"/>
+    <text x="540" y="189" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L</text>
+    <circle cx="575" cy="185" r="9" class="terminal"/>
+    <text x="575" y="189" text-anchor="middle" class="label" style="font-size:9px;">L1</text>
+    <circle cx="610" cy="185" r="9" class="terminal"/>
+    <text x="610" y="189" text-anchor="middle" class="label" style="font-size:9px;">L2</text>
+    <circle cx="575" cy="235" r="9" class="terminal" fill="#58a6ff"/>
+    <text x="575" y="239" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">N</text>
+
+    <!-- 火线 -->
+    <line x1="120" y1="38" x2="270" y2="38" stroke="#f85149" stroke-width="3"/>
+    <line x1="270" y1="38" x2="270" y2="110" stroke="#f85149" stroke-width="3"/>
+    <text x="190" y="32" class="label" style="fill:#f85149;font-size:11px;">火线</text>
+
+    <!-- 零线到A -->
+    <line x1="120" y1="62" x2="190" y2="62" stroke="#58a6ff" stroke-width="3"/>
+    <line x1="190" y1="62" x2="190" y2="235" stroke="#58a6ff" stroke-width="3"/>
+    <line x1="190" y1="235" x2="270" y2="235" stroke="#58a6ff" stroke-width="3"/>
+    <text x="150" y="56" class="label" style="fill:#58a6ff;font-size:11px;">零线</text>
+
+    <!-- 零线到B -->
+    <line x1="190" y1="235" x2="510" y2="235" stroke="#58a6ff" stroke-width="2" stroke-dasharray="4,3"/>
+
+    <!-- 双联线 L1 -->
+    <line x1="400" y1="185" x2="510" y2="185" stroke="#6e7681" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="455" y="177" text-anchor="middle" class="label" style="font-size:10px;">L1</text>
+
+    <!-- 双联线 L2 -->
+    <line x1="400" y1="208" x2="510" y2="208" stroke="#6e7681" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="455" y="222" text-anchor="middle" class="label" style="font-size:10px;">L2</text>
+
+    <!-- 灯控线 B到灯 -->
+    <line x1="640" y1="185" x2="680" y2="185" stroke="#d29922" stroke-width="3"/>
+    <line x1="680" y1="185" x2="680" y2="74" stroke="#d29922" stroke-width="3"/>
+    <line x1="680" y1="74" x2="720" y2="74" stroke="#d29922" stroke-width="3"/>
+    <text x="660" y="177" class="label" style="fill:#d29922;font-size:11px;">灯控线</text>
+
+    <!-- 灯到零线 -->
+    <line x1="720" y1="74" x2="720" y2="235" stroke="#58a6ff" stroke-width="2" stroke-dasharray="4,3"/>
+    <line x1="720" y1="235" x2="640" y2="235" stroke="#58a6ff" stroke-width="2"/>
+  </svg>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-line" style="background:#f85149;"></div>火线</div>
+    <div class="legend-item"><div class="legend-line" style="background:#58a6ff;"></div>零线</div>
+    <div class="legend-item"><div class="legend-line" style="background:#d29922;"></div>灯控线</div>
+    <div class="legend-item"><div class="legend-line" style="background:#6e7681; height:2px; border-top:2px dashed #6e7681; background:transparent;"></div>双联线 L1/L2</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>二、改造思路</h2>
+  <div class="notice">
+    <p><strong>核心目标：</strong>让智能开关<strong style="color:#3fb950;">一直通电</strong>（火+零），且<strong style="color:#3fb950;">只有一个开关直接控制灯</strong>（主控），另一个通过<strong style="color:#3fb950;">无线信号控制</strong>（副控）。</p>
+  </div>
+  <p style="color:#8b949e;margin-top:12px;font-size:0.95em;">
+    由于火线只在A、灯控线只在B，需要利用现成的 <strong>L1/L2 双联线</strong> 来"搬运"缺少的线。
+  </p>
+</div>
+
+<div class="card">
+  <h2>三、选择接线方案</h2>
+  <p style="color:#8b949e;margin-bottom:14px;font-size:0.92em;">点击下方标签切换方案，再点开关看电流流动：</p>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showPanel('A',this)">方案一：开关 A 做主控</div>
+    <div class="tab" onclick="showPanel('B',this)">方案二：开关 B 做主控</div>
+  </div>
+
+  <!-- ========== 方案 A ========== -->
+  <div id="panel-A" class="panel active">
+    <h3>方案说明</h3>
+    <p style="color:#8b949e;margin-bottom:10px;font-size:0.95em;">
+      开关A有火线但无灯控线 → 需要从B"借"灯控线过来。利用<strong style="color:#d29922;">L1传灯控线</strong>，<strong style="color:#f85149;">L2传火线</strong>。
+    </p>
+
+    <div class="ctrl-bar">
+      <button class="btn" id="btn-A" onclick="toggleA()">点我：切换开关A（主控）</button>
+      <span style="color:#8b949e;font-size:0.9em;align-self:center;">开关B通过无线控制，无需接线切换</span>
+    </div>
+
+    <svg viewBox="0 0 800 400" id="svg-A">
+      <!-- 配电箱 -->
+      <rect x="30" y="15" width="90" height="70" rx="6" fill="rgba(48,54,61,0.5)" stroke="#484f58" stroke-width="2"/>
+      <text x="75" y="48" text-anchor="middle" class="label-title" style="font-size:12px;">配电箱</text>
+
+      <!-- 灯 -->
+      <circle cx="720" cy="50" r="24" fill="rgba(255,215,0,0.08)" stroke="#6e7681" stroke-width="2" id="bulb-A"/>
+      <text x="720" y="54" text-anchor="middle" class="label-title" style="font-size:13px;">灯</text>
+
+      <!-- 开关A 主控 -->
+      <rect x="270" y="110" width="130" height="190" rx="8" class="switch-box" stroke="#3fb950" stroke-width="2.5" id="box-A"/>
+      <text x="335" y="136" text-anchor="middle" class="label-title" style="fill:#3fb950;">开关 A</text>
+      <text x="335" y="152" text-anchor="middle" class="label-hl" style="font-size:10px;">主控（控制灯）</text>
+
+      <!-- A端子 -->
+      <circle cx="300" cy="195" r="9" class="terminal" fill="#f85149"/>
+      <text x="300" y="199" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L</text>
+      <circle cx="335" cy="195" r="9" class="terminal" fill="#d29922" id="term-A-L1"/>
+      <text x="335" y="199" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L1</text>
+      <text x="335" y="216" text-anchor="middle" class="label" style="font-size:9px;fill:#d29922;">灯控线</text>
+      <circle cx="370" cy="195" r="9" class="terminal" fill="#f85149" id="term-A-L2"/>
+      <text x="370" y="199" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L2</text>
+      <text x="370" y="216" text-anchor="middle" class="label" style="font-size:9px;fill:#f85149;">火线</text>
+      <circle cx="335" cy="270" r="9" class="terminal" fill="#58a6ff"/>
+      <text x="335" y="274" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">N</text>
+
+      <!-- 开关B 副控 -->
+      <rect x="510" y="110" width="130" height="190" rx="8" class="switch-box" stroke="#f85149" stroke-width="2"/>
+      <text x="575" y="136" text-anchor="middle" class="label-title" style="fill:#f85149;">开关 B</text>
+      <text x="575" y="152" text-anchor="middle" class="label-red" style="font-size:10px;">副控（无线）</text>
+
+      <!-- B端子 -->
+      <circle cx="540" cy="195" r="9" class="terminal" fill="#d29922" id="term-B-L1"/>
+      <text x="540" y="199" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L1</text>
+      <text x="540" y="216" text-anchor="middle" class="label" style="font-size:9px;fill:#d29922;">灯控线</text>
+      <circle cx="575" cy="195" r="9" class="terminal" fill="#f85149" id="term-B-L2"/>
+      <text x="575" y="199" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L2</text>
+      <text x="575" y="216" text-anchor="middle" class="label" style="font-size:9px;fill:#f85149;">火线</text>
+      <circle cx="610" cy="195" r="9" class="terminal"/>
+      <text x="610" y="199" text-anchor="middle" class="label" style="font-size:9px;">L</text>
+      <circle cx="575" cy="270" r="9" class="terminal" fill="#58a6ff"/>
+      <text x="575" y="274" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">N</text>
+
+      <!-- 火线到A的L -->
+      <line x1="120" y1="38" x2="270" y2="38" stroke="#f85149" stroke-width="3"/>
+      <line x1="270" y1="38" x2="270" y2="110" stroke="#f85149" stroke-width="3"/>
+      <line x1="270" y1="110" x2="300" y2="110" stroke="#f85149" stroke-width="3"/>
+      <line x1="300" y1="110" x2="300" y2="186" stroke="#f85149" stroke-width="3" class="flow-live" id="wire-A-live1"/>
+      <text x="190" y="32" class="label" style="fill:#f85149;font-size:11px;">火线</text>
+
+      <!-- 火线从A(L2)到B(L2) -->
+      <line x1="370" y1="195" x2="410" y2="195" stroke="#f85149" stroke-width="3"/>
+      <line x1="410" y1="195" x2="410" y2="228" stroke="#f85149" stroke-width="3"/>
+      <line x1="410" y1="228" x2="510" y2="228" stroke="#f85149" stroke-width="3"/>
+      <line x1="510" y1="228" x2="510" y2="195" stroke="#f85149" stroke-width="3"/>
+      <line x1="510" y1="195" x2="575" y2="195" stroke="#f85149" stroke-width="3" class="flow-live-slow" id="wire-A-live2"/>
+      <text x="460" y="245" text-anchor="middle" class="label" style="fill:#f85149;font-size:11px;">火线经L2传给B</text>
+
+      <!-- 灯控线从B(L1)到A(L1) -->
+      <line x1="540" y1="195" x2="490" y2="195" stroke="#d29922" stroke-width="3"/>
+      <line x1="490" y1="195" x2="490" y2="172" stroke="#d29922" stroke-width="3"/>
+      <line x1="490" y1="172" x2="410" y2="172" stroke="#d29922" stroke-width="3"/>
+      <line x1="410" y1="172" x2="410" y2="195" stroke="#d29922" stroke-width="3"/>
+      <line x1="410" y1="195" x2="335" y2="195" stroke="#d29922" stroke-width="3" class="flow-live" id="wire-A-ctrl1"/>
+      <text x="460" y="162" text-anchor="middle" class="label" style="fill:#d29922;font-size:11px;">灯控线经L1传给A</text>
+
+      <!-- 灯控线从A到灯 -->
+      <line x1="335" y1="110" x2="335" y2="80" stroke="#d29922" stroke-width="3" id="wire-A-ctrl2" style="opacity:0.3"/>
+      <line x1="335" y1="80" x2="680" y2="80" stroke="#d29922" stroke-width="3" id="wire-A-ctrl3" style="opacity:0.3"/>
+      <line x1="680" y1="80" x2="680" y2="74" stroke="#d29922" stroke-width="3" id="wire-A-ctrl4" style="opacity:0.3"/>
+      <line x1="680" y1="74" x2="720" y2="74" stroke="#d29922" stroke-width="3" id="wire-A-ctrl5" style="opacity:0.3"/>
+      <text x="500" y="72" class="label" style="fill:#d29922;font-size:11px;opacity:0.5" id="lbl-A-ctrl">灯控线去灯（开灯时通电）</text>
+
+      <!-- 零线 -->
+      <line x1="120" y1="62" x2="190" y2="62" stroke="#58a6ff" stroke-width="3"/>
+      <line x1="190" y1="62" x2="190" y2="270" stroke="#58a6ff" stroke-width="3"/>
+      <line x1="190" y1="270" x2="270" y2="270" stroke="#58a6ff" stroke-width="3"/>
+      <text x="150" y="56" class="label" style="fill:#58a6ff;font-size:11px;">零线</text>
+      <line x1="190" y1="270" x2="510" y2="270" stroke="#58a6ff" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="720" y1="74" x2="720" y2="270" stroke="#58a6ff" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="720" y1="270" x2="640" y2="270" stroke="#58a6ff" stroke-width="2"/>
+
+      <!-- 开灯指示箭头 -->
+      <polygon points="350,95 360,105 340,105" fill="#3fb950" id="arrow-A" style="opacity:0"/>
+    </svg>
+
+    <div class="tip">
+      <h4>接线步骤</h4>
+      <ol class="step">
+        <li>开关A：<strong style="color:#f85149;">火线</strong>接入 <strong>L</strong> 端子（不变）</li>
+        <li>开关A：火线同时短接到 <strong style="color:#f85149;">L2</strong> 端子（火线经L2去B）</li>
+        <li>开关A：<strong style="color:#d29922;">L1</strong> 端子接从B来的灯控线（最终控制灯）</li>
+        <li>开关B：将原本的 <strong style="color:#d29922;">灯控线</strong> 改接到 <strong>L1</strong> 端子</li>
+        <li>开关B：<strong style="color:#f85149;">L2</strong> 端子接从A来的火线（副控供电）</li>
+        <li>两个开关的<strong style="color:#58a6ff;">零线</strong>保持原有接法不变</li>
+      </ol>
+    </div>
+
+    <table>
+      <tr><th>端子</th><th>开关 A（主控）</th><th>开关 B（副控）</th></tr>
+      <tr><td>L</td><td><span style="color:#f85149;">火线（进线）</span></td><td>空 / 不接</td></tr>
+      <tr><td>L1</td><td><span style="color:#d29922;">灯控线（经L1从B来）</span></td><td><span style="color:#d29922;">灯控线（去灯）</span></td></tr>
+      <tr><td>L2</td><td><span style="color:#f85149;">火线（去B）</span></td><td><span style="color:#f85149;">火线（从A来，副控供电）</span></td></tr>
+      <tr><td>N</td><td><span style="color:#58a6ff;">零线</span></td><td><span style="color:#58a6ff;">零线</span></td></tr>
+    </table>
+  </div>
+
+  <!-- ========== 方案 B ========== -->
+  <div id="panel-B" class="panel">
+    <h3>方案说明</h3>
+    <p style="color:#8b949e;margin-bottom:10px;font-size:0.95em;">
+      开关B有灯控线 → 直接做主控。利用<strong style="color:#f85149;">L1</strong>把A的火线"搬运"过来给B供电。
+    </p>
+
+    <div class="ctrl-bar">
+      <button class="btn" id="btn-B" onclick="toggleB()">点我：切换开关B（主控）</button>
+      <span style="color:#8b949e;font-size:0.9em;align-self:center;">开关A通过无线控制，无需接线切换</span>
+    </div>
+
+    <svg viewBox="0 0 800 400" id="svg-B">
+      <!-- 配电箱 -->
+      <rect x="30" y="15" width="90" height="70" rx="6" fill="rgba(48,54,61,0.5)" stroke="#484f58" stroke-width="2"/>
+      <text x="75" y="48" text-anchor="middle" class="label-title" style="font-size:12px;">配电箱</text>
+
+      <!-- 灯 -->
+      <circle cx="720" cy="50" r="24" fill="rgba(255,215,0,0.08)" stroke="#6e7681" stroke-width="2" id="bulb-B"/>
+      <text x="720" y="54" text-anchor="middle" class="label-title" style="font-size:13px;">灯</text>
+
+      <!-- 开关A 副控 -->
+      <rect x="270" y="110" width="130" height="190" rx="8" class="switch-box" stroke="#f85149" stroke-width="2"/>
+      <text x="335" y="136" text-anchor="middle" class="label-title" style="fill:#f85149;">开关 A</text>
+      <text x="335" y="152" text-anchor="middle" class="label-red" style="font-size:10px;">副控（无线）</text>
+
+      <!-- A端子 -->
+      <circle cx="300" cy="195" r="9" class="terminal"/>
+      <text x="300" y="199" text-anchor="middle" class="label" style="font-size:9px;">L</text>
+      <circle cx="335" cy="195" r="9" class="terminal" fill="#f85149" id="term-Ab-L1"/>
+      <text x="335" y="199" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L1</text>
+      <text x="335" y="216" text-anchor="middle" class="label" style="font-size:9px;fill:#f85149;">火线</text>
+      <circle cx="370" cy="195" r="9" class="terminal"/>
+      <text x="370" y="199" text-anchor="middle" class="label" style="font-size:9px;">L2</text>
+      <circle cx="335" cy="270" r="9" class="terminal" fill="#58a6ff"/>
+      <text x="335" y="274" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">N</text>
+
+      <!-- 开关B 主控 -->
+      <rect x="510" y="110" width="130" height="190" rx="8" class="switch-box" stroke="#3fb950" stroke-width="2.5" id="box-B"/>
+      <text x="575" y="136" text-anchor="middle" class="label-title" style="fill:#3fb950;">开关 B</text>
+      <text x="575" y="152" text-anchor="middle" class="label-hl" style="font-size:10px;">主控（控制灯）</text>
+
+      <!-- B端子 -->
+      <circle cx="540" cy="195" r="9" class="terminal" fill="#d29922" id="term-Bb-L"/>
+      <text x="540" y="199" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L</text>
+      <text x="540" y="216" text-anchor="middle" class="label" style="font-size:9px;fill:#d29922;">灯控线</text>
+      <circle cx="575" cy="195" r="9" class="terminal" fill="#f85149" id="term-Bb-L1"/>
+      <text x="575" y="199" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">L1</text>
+      <text x="575" y="216" text-anchor="middle" class="label" style="font-size:9px;fill:#f85149;">火线</text>
+      <circle cx="610" cy="195" r="9" class="terminal"/>
+      <text x="610" y="199" text-anchor="middle" class="label" style="font-size:9px;">L2</text>
+      <circle cx="575" cy="270" r="9" class="terminal" fill="#58a6ff"/>
+      <text x="575" y="274" text-anchor="middle" class="label" style="font-size:9px;fill:#fff;">N</text>
+
+      <!-- 火线到A -->
+      <line x1="120" y1="38" x2="270" y2="38" stroke="#f85149" stroke-width="3"/>
+      <line x1="270" y1="38" x2="270" y2="110" stroke="#f85149" stroke-width="3"/>
+      <text x="190" y="32" class="label" style="fill:#f85149;font-size:11px;">火线</text>
+
+      <!-- 火线从A到A的L1 -->
+      <line x1="270" y1="110" x2="300" y2="110" stroke="#f85149" stroke-width="3"/>
+      <line x1="300" y1="110" x2="300" y2="150" stroke="#f85149" stroke-width="3"/>
+      <line x1="300" y1="150" x2="335" y2="150" stroke="#f85149" stroke-width="3"/>
+      <line x1="335" y1="150" x2="335" y2="186" stroke="#f85149" stroke-width="3" class="flow-live" id="wire-B-live1"/>
+      <text x="275" y="145" class="label" style="fill:#f85149;font-size:10px;">火线改接L1</text>
+
+      <!-- 火线从A(L1)经L1到B(L1) -->
+      <line x1="335" y1="195" x2="410" y2="195" stroke="#f85149" stroke-width="3"/>
+      <line x1="410" y1="195" x2="410" y2="172" stroke="#f85149" stroke-width="3"/>
+      <line x1="410" y1="172" x2="490" y2="172" stroke="#f85149" stroke-width="3"/>
+      <line x1="490" y1="172" x2="490" y2="195" stroke="#f85149" stroke-width="3"/>
+      <line x1="490" y1="195" x2="575" y2="195" stroke="#f85149" stroke-width="3" class="flow-live-slow" id="wire-B-live2"/>
+      <text x="460" y="162" text-anchor="middle" class="label" style="fill:#f85149;font-size:11px;">火线经L1传给B</text>
+
+      <!-- 灯控线从B到灯 -->
+      <line x1="540" y1="110" x2="540" y2="80" stroke="#d29922" stroke-width="3" id="wire-B-ctrl1" style="opacity:0.3"/>
+      <line x1="540" y1="80" x2="680" y2="80" stroke="#d29922" stroke-width="3" id="wire-B-ctrl2" style="opacity:0.3"/>
+      <line x1="680" y1="80" x2="680" y2="74" stroke="#d29922" stroke-width="3" id="wire-B-ctrl3" style="opacity:0.3"/>
+      <line x1="680" y1="74" x2="720" y2="74" stroke="#d29922" stroke-width="3" id="wire-B-ctrl4" style="opacity:0.3"/>
+      <text x="600" y="72" class="label" style="fill:#d29922;font-size:11px;opacity:0.5" id="lbl-B-ctrl">灯控线去灯（开灯时通电）</text>
+
+      <!-- 零线 -->
+      <line x1="120" y1="62" x2="190" y2="62" stroke="#58a6ff" stroke-width="3"/>
+      <line x1="190" y1="62" x2="190" y2="270" stroke="#58a6ff" stroke-width="3"/>
+      <line x1="190" y1="270" x2="270" y2="270" stroke="#58a6ff" stroke-width="3"/>
+      <text x="150" y="56" class="label" style="fill:#58a6ff;font-size:11px;">零线</text>
+      <line x1="190" y1="270" x2="510" y2="270" stroke="#58a6ff" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="720" y1="74" x2="720" y2="270" stroke="#58a6ff" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="720" y1="270" x2="640" y2="270" stroke="#58a6ff" stroke-width="2"/>
+
+      <!-- 闲置L2 -->
+      <line x1="410" y1="228" x2="510" y2="228" stroke="#30363d" stroke-width="2" stroke-dasharray="3,5"/>
+      <text x="460" y="245" text-anchor="middle" class="label" style="fill:#484f58;font-size:10px;">L2 闲置</text>
+
+      <!-- 开灯指示 -->
+      <polygon points="575,95 585,105 565,105" fill="#3fb950" id="arrow-B" style="opacity:0"/>
+    </svg>
+
+    <div class="tip">
+      <h4>接线步骤</h4>
+      <ol class="step">
+        <li>开关A：将原本的 <strong style="color:#f85149;">火线</strong> 从 <strong>L</strong> 改接到 <strong style="color:#f85149;">L1</strong>（火线经L1去B）</li>
+        <li>开关B：<strong style="color:#f85149;">L1</strong> 端子接从A来的火线（主控供电）</li>
+        <li>开关B：<strong style="color:#d29922;">L</strong> 端子接原本的灯控线（直接控制灯）</li>
+        <li>开关B的L2端子闲置或封好</li>
+        <li>开关A的L端子闲置，L2端子闲置</li>
+        <li>两个开关的<strong style="color:#58a6ff;">零线</strong>保持原有接法不变</li>
+      </ol>
+    </div>
+
+    <table>
+      <tr><th>端子</th><th>开关 A（副控）</th><th>开关 B（主控）</th></tr>
+      <tr><td>L</td><td>空 / 不接</td><td><span style="color:#d29922;">灯控线（去灯）</span></td></tr>
+      <tr><td>L1</td><td><span style="color:#f85149;">火线（去B）</span></td><td><span style="color:#f85149;">火线（从A来，主控供电）</span></td></tr>
+      <tr><td>L2</td><td>空 / 不接</td><td>空 / 不接</td></tr>
+      <tr><td>N</td><td><span style="color:#58a6ff;">零线</span></td><td><span style="color:#58a6ff;">零线</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>四、核心要点 & 给师傅的提醒</h2>
+  <div class="notice">
+    <p>不管选哪个方案，记住：<strong style="color:#3fb950;">主控开关必须同时有火线、零线和灯控线</strong>。副控开关只需要火线和零线（通过无线控制主控）。当火线与灯控线不在同一个开关盒时，就利用L1/L2双联线来"搬运"。</p>
+  </div>
+  <div class="tip">
+    <h4>关键提醒</h4>
+    <ul>
+      <li>智能开关必须<strong>同时接火线和零线</strong>，不能只接火线</li>
+      <li>改造后其中一个开关盒里可能有<strong>两根火线</strong>，不要混淆</li>
+      <li>接线前务必<strong>断电操作</strong>，用验电笔确认无电后再动手</li>
+      <li>建议改造前先拍照记录原有接线，方便复原</li>
+      <li>不确定哪个是灯控线？用验电笔测试：灯控线在灯关闭时没电，灯开启时有电</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ===== 面板切换 =====
+function showPanel(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+// ===== 方案 A 开关控制 =====
+let stateA = false;
+function toggleA() {
+  stateA = !stateA;
+  const btn = document.getElementById('btn-A');
+  const bulb = document.getElementById('bulb-A');
+  const arrow = document.getElementById('arrow-A');
+
+  // 控制线高亮
+  const ctrls = ['wire-A-ctrl2','wire-A-ctrl3','wire-A-ctrl4','wire-A-ctrl5'];
+  const lbl = document.getElementById('lbl-A-ctrl');
+
+  if (stateA) {
+    btn.textContent = '点我：关闭开关A';
+    btn.classList.add('off');
+    bulb.setAttribute('fill','rgba(255,215,0,0.6)');
+    bulb.setAttribute('stroke','#ffd700');
+    bulb.classList.add('glow');
+    arrow.style.opacity = '1';
+    ctrls.forEach(id => { document.getElementById(id).style.opacity = '1'; });
+    lbl.style.opacity = '1';
+  } else {
+    btn.textContent = '点我：打开开关A（主控）';
+    btn.classList.remove('off');
+    bulb.setAttribute('fill','rgba(255,215,0,0.08)');
+    bulb.setAttribute('stroke','#6e7681');
+    bulb.classList.remove('glow');
+    arrow.style.opacity = '0';
+    ctrls.forEach(id => { document.getElementById(id).style.opacity = '0.3'; });
+    lbl.style.opacity = '0.5';
+  }
+}
+
+// ===== 方案 B 开关控制 =====
+let stateB = false;
+function toggleB() {
+  stateB = !stateB;
+  const btn = document.getElementById('btn-B');
+  const bulb = document.getElementById('bulb-B');
+  const arrow = document.getElementById('arrow-B');
+
+  const ctrls = ['wire-B-ctrl1','wire-B-ctrl2','wire-B-ctrl3','wire-B-ctrl4'];
+  const lbl = document.getElementById('lbl-B-ctrl');
+
+  if (stateB) {
+    btn.textContent = '点我：关闭开关B';
+    btn.classList.add('off');
+    bulb.setAttribute('fill','rgba(255,215,0,0.6)');
+    bulb.setAttribute('stroke','#ffd700');
+    bulb.classList.add('glow');
+    arrow.style.opacity = '1';
+    ctrls.forEach(id => { document.getElementById(id).style.opacity = '1'; });
+    lbl.style.opacity = '1';
+  } else {
+    btn.textContent = '点我：打开开关B（主控）';
+    btn.classList.remove('off');
+    bulb.setAttribute('fill','rgba(255,215,0,0.08)');
+    bulb.setAttribute('stroke','#6e7681');
+    bulb.classList.remove('glow');
+    arrow.style.opacity = '0';
+    ctrls.forEach(id => { document.getElementById(id).style.opacity = '0.3'; });
+    lbl.style.opacity = '0.5';
+  }
+}
+</script>
+
+</body>
+</html>
